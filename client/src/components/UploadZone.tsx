@@ -68,7 +68,7 @@ export default function UploadZone() {
       });
 
       const result: UploadResult = await new Promise((resolve, reject) => {
-        xhr.open("POST", `${API_BASE}/upload`);
+        xhr.open("POST", `/api/upload`);
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(JSON.parse(xhr.responseText));

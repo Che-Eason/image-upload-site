@@ -18,7 +18,8 @@ export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// 使用相对路径，前后端统一部署在 Vercel
+export const API_BASE = "";
 
 export interface UploadResult {
   success: boolean;
