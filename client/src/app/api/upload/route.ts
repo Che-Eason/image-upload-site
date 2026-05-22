@@ -95,13 +95,13 @@ export async function POST(request: NextRequest) {
         .jpeg({ quality: 80 })
         .toBuffer();
 
-      // Upload to Vercel Blob (persistent, public URLs)
+      // Upload to Vercel Blob — unified folder: uploads/images/
       const [originalBlob, thumbBlob] = await Promise.all([
-        put(`images/${fileName}`, optimizedBuffer, {
+        put(`uploads/images/${fileName}`, optimizedBuffer, {
           access: "public",
           contentType: "image/jpeg",
         }),
-        put(`images/thumbnails/${fileName}`, thumbBuffer, {
+        put(`uploads/images/thumbnails/${fileName}`, thumbBuffer, {
           access: "public",
           contentType: "image/jpeg",
         }),
@@ -134,8 +134,8 @@ export async function POST(request: NextRequest) {
     // Save to shared history on Blob (cross-device access)
     try {
       const { list } = await import("@vercel/blob");
-      const { blobs } = await list({ prefix: "history/" });
-      const historyBlob = blobs.find((b) => b.pathname === "history/upload-history.json");
+      const { blobs } = await list({ prefix: "uploads/history/" });
+      const historyBlob = blobs.find((b) => b.pathname === "uploads/history/upload-history.json");
       let existing: UploadRecord[] = [];
       if (historyBlob) {
         const resp = await fetch(historyBlob.url);
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       }
       // Merge and save
       const merged = [...results, ...existing].slice(0, 100);
-      await put("history/upload-history.json", JSON.stringify(merged), {
+      await put("uploads/history/upload-history.json", JSON.stringify(merged), {
         access: "public",
         contentType: "application/json",
       });

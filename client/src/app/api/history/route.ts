@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { put, list, del } from "@vercel/blob";
 
-const HISTORY_BLOB_PATH = "history/upload-history.json";
+const HISTORY_BLOB_PATH = "uploads/history/upload-history.json";
 
 interface HistoryRecord {
   id: string;
@@ -16,7 +16,7 @@ interface HistoryRecord {
 
 export async function GET() {
   try {
-    const { blobs } = await list({ prefix: "history/" });
+    const { blobs } = await list({ prefix: "uploads/history/" });
     const historyBlob = blobs.find((b) => b.pathname === HISTORY_BLOB_PATH);
     if (!historyBlob) {
       return NextResponse.json([]);
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     // Read existing history
     let existing: HistoryRecord[] = [];
     try {
-      const { blobs } = await list({ prefix: "history/" });
+      const { blobs } = await list({ prefix: "uploads/history/" });
       const historyBlob = blobs.find((b) => b.pathname === HISTORY_BLOB_PATH);
       if (historyBlob) {
         const resp = await fetch(historyBlob.url);
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
     // Delete old blob, write new one
     try {
-      const { blobs } = await list({ prefix: "history/" });
+      const { blobs } = await list({ prefix: "uploads/history/" });
       for (const b of blobs) {
         await del(b.url);
       }
