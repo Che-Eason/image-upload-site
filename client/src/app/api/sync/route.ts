@@ -3,8 +3,8 @@ import { list } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
 
-// 本地存储路径
-const LOCAL_UPLOADS = path.resolve(process.cwd(), "../../uploads/images");
+// 本地存储路径 — E盘 存照片 文件夹
+const LOCAL_UPLOADS = "E:\\存照片";
 const isLocal = !process.env.VERCEL;
 
 export async function POST() {
@@ -80,9 +80,8 @@ export async function POST() {
     );
     if (historyBlob) {
       const resp = await fetch(historyBlob.url);
-      const historyDir = path.join(LOCAL_UPLOADS, "..");
       fs.writeFileSync(
-        path.join(historyDir, "同步记录.json"),
+        path.join(LOCAL_UPLOADS, "同步记录.json"),
         JSON.stringify(await resp.json(), null, 2),
         "utf-8"
       );

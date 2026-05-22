@@ -278,7 +278,7 @@ export default function GalleryPage() {
               </motion.p>
             )}
             <p className="text-xs text-black/30 dark:text-white/30">
-              💡 同步后，图片会存到这台电脑的 uploads/images/ 文件夹
+              💡 同步后，图片会存到 E:\存照片\ 文件夹
             </p>
           </div>
         )}

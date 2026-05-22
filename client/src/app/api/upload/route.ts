@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import path from "path";
 
-// 本地存储路径 — 这台电脑上的文件夹
-const LOCAL_UPLOADS = path.resolve(process.cwd(), "../../uploads/images");
+// 本地存储路径 — E盘 存照片 文件夹
+const LOCAL_UPLOADS = "E:\\存照片";
 const isLocal = !process.env.VERCEL; // Vercel 环境不自带此变量，本地有
 
 const ALLOWED_TYPES: Record<string, string> = {
