@@ -1,12 +1,29 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, FileImage, CheckCircle2 } from "lucide-react";
+import { Upload, X, CheckCircle2 } from "lucide-react";
 import ProgressBar from "./ProgressBar";
 import UploadHistory, { HistoryItem } from "./UploadHistory";
-import { formatFileSize, API_BASE, UploadResult } from "@/lib/utils";
+import { formatFileSize, UploadResult, UploadFileResult } from "@/lib/utils";
+
+const HISTORY_KEY = "dropbox_upload_history";
+
+function loadHistory(): HistoryItem[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(items: HistoryItem[]) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 50)));
+  } catch {}
+}
 
 export default function UploadZone() {
   const [files, setFiles] = useState<File[]>([]);
@@ -15,6 +32,10 @@ export default function UploadZone() {
   const [progress, setProgress] = useState(0);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [complete, setComplete] = useState(false);
+
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
 
   const onDrop = useCallback((accepted: File[]) => {
     setComplete(false);
@@ -80,16 +101,18 @@ export default function UploadZone() {
         xhr.send(formData);
       });
 
-      if (result.success && result.file) {
-        const item: HistoryItem = {
-          id: result.file.fileName,
-          url: result.file.url,
-          thumbnailUrl: result.file.thumbnailUrl,
-          originalName: result.file.originalName,
-          size: result.file.size,
+      if (result.success && result.files) {
+        const items: HistoryItem[] = result.files.map((f: UploadFileResult) => ({
+          id: f!.fileName,
+          url: f!.url,
+          thumbnailUrl: f!.thumbnailUrl || f!.url,
+          originalName: f!.originalName,
+          size: f!.size,
           uploadedAt: new Date(),
-        };
-        setHistory((prev) => [item, ...prev]);
+        }));
+        const merged = [...items, ...history];
+        setHistory(merged);
+        saveHistory(merged);
       }
 
       setComplete(true);

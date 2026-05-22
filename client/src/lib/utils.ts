@@ -21,14 +21,17 @@ export function generateId(): string {
 // 使用相对路径，前后端统一部署在 Vercel
 export const API_BASE = "";
 
+export interface UploadFileResult {
+  originalName: string;
+  fileName: string;
+  size: number;
+  url: string;
+  thumbnailUrl?: string;
+}
+
 export interface UploadResult {
   success: boolean;
   message: string;
-  file?: {
-    originalName: string;
-    fileName: string;
-    size: number;
-    url: string;
-    thumbnailUrl?: string;
-  };
+  file?: UploadFileResult;
+  files?: UploadFileResult[];
 }
