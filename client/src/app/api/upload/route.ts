@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
+
+// 本地存储路径 — 这台电脑上的文件夹
+const LOCAL_UPLOADS = path.resolve(process.cwd(), "../../uploads/images");
+const isLocal = !process.env.VERCEL; // Vercel 环境不自带此变量，本地有
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -106,6 +112,24 @@ export async function POST(request: NextRequest) {
           contentType: "image/jpeg",
         }),
       ]);
+
+      // ============================================
+      // 本地存储 — 直接写到这台电脑的文件夹
+      // ============================================
+      if (isLocal) {
+        try {
+          const localImgDir = path.join(LOCAL_UPLOADS);
+          const localThumbDir = path.join(LOCAL_UPLOADS, "thumbnails");
+          [localImgDir, localThumbDir].forEach((dir) => {
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          });
+          fs.writeFileSync(path.join(localImgDir, fileName), optimizedBuffer);
+          fs.writeFileSync(path.join(localThumbDir, fileName), thumbBuffer);
+          console.log(`📁 本地保存: ${localImgDir}\\${fileName}`);
+        } catch (e) {
+          console.error("Local save error:", e);
+        }
+      }
 
       const record: UploadRecord = {
         id: uuidv4().substring(0, 8),

@@ -25,6 +25,8 @@ export default function GalleryPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
 
   const loadImages = async () => {
     try {
@@ -232,16 +234,52 @@ export default function GalleryPage() {
           </motion.div>
         )}
 
-        {/* Refresh button */}
+        {/* Action buttons */}
         {images.length > 0 && (
-          <div className="mt-8 text-center">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={loadImages}
-              className="rounded-2xl bg-black/5 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20"
-            >
-              刷新相册
-            </motion.button>
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={loadImages}
+                className="rounded-2xl bg-black/5 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20"
+              >
+                刷新相册
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                disabled={syncing}
+                onClick={async () => {
+                  setSyncing(true);
+                  setSyncMsg("");
+                  try {
+                    const res = await fetch("/api/sync", { method: "POST" });
+                    const data = await res.json();
+                    setSyncMsg(data.message);
+                    setTimeout(() => setSyncMsg(""), 4000);
+                  } catch {
+                    setSyncMsg("同步失败，请确保本地运行");
+                    setTimeout(() => setSyncMsg(""), 4000);
+                  } finally {
+                    setSyncing(false);
+                  }
+                }}
+                className="rounded-2xl bg-apple-blue px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-blue-600 disabled:opacity-50"
+              >
+                {syncing ? "同步中..." : "⬇ 同步到本地"}
+              </motion.button>
+            </div>
+            {syncMsg && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-sm text-green-600 dark:text-green-400"
+              >
+                {syncMsg}
+              </motion.p>
+            )}
+            <p className="text-xs text-black/30 dark:text-white/30">
+              💡 同步后，图片会存到这台电脑的 uploads/images/ 文件夹
+            </p>
           </div>
         )}
       </main>
