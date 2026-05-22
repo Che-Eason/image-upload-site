@@ -8,21 +8,21 @@ import ProgressBar from "./ProgressBar";
 import UploadHistory, { HistoryItem } from "./UploadHistory";
 import { formatFileSize, UploadResult, UploadFileResult } from "@/lib/utils";
 
-const HISTORY_KEY = "dropbox_upload_history";
-
-function loadHistory(): HistoryItem[] {
+async function fetchHistory(): Promise<HistoryItem[]> {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const res = await fetch("/api/history");
+    const data = await res.json();
+    return data.map((r: Record<string, unknown>) => ({
+      id: r.savedFileName as string,
+      url: r.url as string,
+      thumbnailUrl: r.thumbnailUrl as string,
+      originalName: r.originalName as string,
+      size: r.size as number,
+      uploadedAt: new Date(r.uploadedAt as string),
+    }));
   } catch {
     return [];
   }
-}
-
-function saveHistory(items: HistoryItem[]) {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 50)));
-  } catch {}
 }
 
 export default function UploadZone() {
@@ -34,7 +34,7 @@ export default function UploadZone() {
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
-    setHistory(loadHistory());
+    fetchHistory().then(setHistory);
   }, []);
 
   const onDrop = useCallback((accepted: File[]) => {
@@ -102,17 +102,9 @@ export default function UploadZone() {
       });
 
       if (result.success && result.files) {
-        const items: HistoryItem[] = result.files.map((f: UploadFileResult) => ({
-          id: f!.fileName,
-          url: f!.url,
-          thumbnailUrl: f!.thumbnailUrl || f!.url,
-          originalName: f!.originalName,
-          size: f!.size,
-          uploadedAt: new Date(),
-        }));
-        const merged = [...items, ...history];
-        setHistory(merged);
-        saveHistory(merged);
+        // Reload shared history from server (cross-device sync)
+        const updated = await fetchHistory();
+        setHistory(updated);
       }
 
       setComplete(true);

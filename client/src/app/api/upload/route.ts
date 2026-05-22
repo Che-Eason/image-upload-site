@@ -131,6 +131,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Save to shared history on Blob (cross-device access)
+    try {
+      const { list } = await import("@vercel/blob");
+      const { blobs } = await list({ prefix: "history/" });
+      const historyBlob = blobs.find((b) => b.pathname === "history/upload-history.json");
+      let existing: UploadRecord[] = [];
+      if (historyBlob) {
+        const resp = await fetch(historyBlob.url);
+        existing = await resp.json();
+      }
+      // Delete old history blob
+      for (const b of blobs) {
+        const { del } = await import("@vercel/blob");
+        await del(b.url);
+      }
+      // Merge and save
+      const merged = [...results, ...existing].slice(0, 100);
+      await put("history/upload-history.json", JSON.stringify(merged), {
+        access: "public",
+        contentType: "application/json",
+      });
+    } catch (e) {
+      console.error("History sync error:", e);
+    }
+
     return NextResponse.json({
       success: true,
       message: `成功上传 ${results.length} 个文件`,
