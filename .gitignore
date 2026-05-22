@@ -1,0 +1,17 @@
+node_modules/
+.next/
+dist/
+.env
+# 上传的图片不提交
+uploads/images/*.jpg
+uploads/images/*.png
+uploads/images/*.webp
+uploads/images/*.heic
+uploads/images/thumbnails/*.jpg
+uploads/images/thumbnails/*.png
+uploads/images/thumbnails/*.webp
+uploads/images/thumbnails/*.heic
+# 保留记录文件
+!uploads/images/upload-log.json
+*.log
+.DS_Store
